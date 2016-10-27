@@ -46,7 +46,7 @@ var TIF = {                            //All text information frames
 function NodeID3() {
 }
 
-NodeID3.prototype.write = function(tags, filepath) {
+NodeID3.prototype.toID3 = function(tags) {
     var frames = [];
     frames.push(this.createTagHeader());
 
@@ -80,7 +80,11 @@ NodeID3.prototype.write = function(tags, filepath) {
     frames[0].writeUInt8(size[2], 8);
     frames[0].writeUInt8(size[3], 9);
 
-    var completeTag = Buffer.concat(frames);
+    return Buffer.concat(frames);
+}
+
+NodeID3.prototype.write = function(tags, filepath) {
+    var completeTag = this.toID3(tags);
 
     try {
         var data = fs.readFileSync(filepath);
@@ -108,7 +112,7 @@ NodeID3.prototype.read = function(filebuffer) {
     for(var i = 0; i < frames.length; i++) {
         var frameStart = ID3Frame.indexOf(TIF[frames[i]]);
         if(frameStart == -1) continue;
-        
+
         frameSize = decodeSize(new Buffer([ID3Frame[frameStart + 4], ID3Frame[frameStart + 5], ID3Frame[frameStart + 6], ID3Frame[frameStart + 7]]));
         var offset = 1;
         if(ID3Frame[frameStart + 11] == 0xFF || ID3Frame[frameStart + 12] == 0xFE) {
